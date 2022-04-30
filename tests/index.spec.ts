@@ -1,21 +1,24 @@
 import { App, Random } from 'koishi'
-import { expect } from 'chai'
+import { expect, use } from 'chai'
 import { readdirSync } from 'fs-extra'
 import { resolve } from 'path'
 import nock from 'nock'
-import jest from 'jest-mock'
+import * as jest from 'jest-mock'
 import * as github from '../src'
-import memory from '@koishijs/plugin-database-memory'
 import mock from '@koishijs/plugin-mock'
 import { Method } from 'axios'
-import 'chai-shape'
+import shape from 'chai-shape'
+import promise from 'chai-as-promised'
+
+use(shape)
+use(promise)
 
 const app = new App({
   port: 10000,
   prefix: '.',
 })
 
-app.plugin(memory)
+app.plugin('database-memory')
 app.plugin(mock)
 app.plugin(github)
 
