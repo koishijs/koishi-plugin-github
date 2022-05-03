@@ -35,7 +35,7 @@
     "@koishijs/plugin-mock": "^1.0.4"
   },
   "peerDependencies": {
-    "koishi": "^4.6.1"
+    "koishi": "^4.6.2"
   },
   "dependencies": {
     "@octokit/webhooks-types": "^5.5.1",

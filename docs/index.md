@@ -2,7 +2,7 @@
 sidebarDepth: 2
 ---
 
-# 接入 GitHub (GitHub)
+# 接入 GitHub
 
 ::: tip
 要使用本插件，你需要安装数据库支持。
