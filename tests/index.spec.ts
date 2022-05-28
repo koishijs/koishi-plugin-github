@@ -31,13 +31,13 @@ const start = jest.spyOn(app.mock, 'start')
 start.mockReturnValue(Promise.resolve())
 
 before(async () => {
+  await app.start()
   await app.mock.initUser('123', 3)
   await app.mock.initUser('456', 3)
   await app.database.createChannel('mock', '999', {
     assignee: app.bots[0].selfId,
     githubWebhooks: { 'koishijs/koishi': {} },
   })
-  await app.start()
 })
 
 const snapshot = require('./index.snap')
