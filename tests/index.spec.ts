@@ -1,4 +1,4 @@
-import { App, Random } from 'koishi'
+import { App, Bot, Random } from 'koishi'
 import { expect, use } from 'chai'
 import { readdirSync } from 'fs-extra'
 import { resolve } from 'path'
@@ -52,7 +52,7 @@ const payload = {
   refresh_token: ghRefreshToken,
 }
 
-describe('GitHub Plugin', () => {
+describe('koishi-plugin-github', () => {
   describe('Basic Support', () => {
     it('authorize server', async () => {
       tokenInterceptor.reply(200, payload)
@@ -147,7 +147,7 @@ describe('GitHub Plugin', () => {
 
   describe('Webhook Events', () => {
     // spy on sendMessage
-    const sendMessage = app.bots[0].sendMessage = jest.fn()
+    const sendMessage = app.bots[0].sendMessage = jest.fn<Bot['sendMessage']>()
 
     const files = readdirSync(resolve(__dirname, 'fixtures'))
     files.forEach((file) => {
@@ -192,7 +192,7 @@ describe('GitHub Plugin', () => {
     })
 
     type MockedReplyCallback = (err: NodeJS.ErrnoException, result: nock.ReplyFnResult) => void
-    type MockedReply = jest.Mock<void, [uri: string, body: nock.Body, callback: MockedReplyCallback]>
+    type MockedReply = jest.Mock<(uri: string, body: nock.Body, callback: MockedReplyCallback) => void>
 
     const mockResponse = (method: Method, uri: string, payload: nock.ReplyFnResult) => {
       const mock: MockedReply = jest.fn((uri, body, callback) => callback(null, payload))
