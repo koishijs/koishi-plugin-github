@@ -33,7 +33,7 @@ type Payload<T extends EmitterWebhookEventName> = T extends `${infer E}/${infer 
 //     [E in EmitterWebhookEventName as `github/${E}`]: (payload: Payload<E>) => void
 //   }
 
-//   interface EventMap extends WebhookEventMap {}
+//   interface Events extends WebhookEventMap {}
 // }
 
 export const defaultEvents: EventConfig = {

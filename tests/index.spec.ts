@@ -6,6 +6,7 @@ import nock from 'nock'
 import * as jest from 'jest-mock'
 import * as github from '../src'
 import mock from '@koishijs/plugin-mock'
+import memory from '@koishijs/plugin-database-memory'
 import { Method } from 'axios'
 import shape from 'chai-shape'
 import promise from 'chai-as-promised'
@@ -18,7 +19,7 @@ const app = new App({
   prefix: '.',
 })
 
-app.plugin('database-memory')
+app.plugin(memory)
 app.plugin(mock)
 app.plugin(github)
 

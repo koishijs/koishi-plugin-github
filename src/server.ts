@@ -4,14 +4,8 @@ import { Context, Dict, Logger, Quester, Schema, segment, Service, Session, Time
 import {} from '@koishijs/plugin-puppeteer'
 
 declare module 'koishi' {
-  interface App {
+  interface Context {
     github?: GitHub
-  }
-
-  namespace Context {
-    interface Services {
-      github?: GitHub
-    }
   }
 
   interface User {
@@ -45,7 +39,7 @@ export interface Config {
   requestTimeout?: number
 }
 
-export const Config = Schema.object({
+export const Config: Schema<Config> = Schema.object({
   path: Schema.string().description('GitHub 服务的路径。').default('/github'),
   appId: Schema.string().description('GitHub OAuth App ID.'),
   appSecret: Schema.string().description('GitHub OAuth App Secret.'),
