@@ -73,7 +73,7 @@ export function apply(ctx: Context, config: Config) {
 
         name = name.toLowerCase()
         const url = `https://api.github.com/repos/${name}/hooks`
-        const [repo] = await ctx.database.get('github', [name])
+        const [repo] = await ctx.database.get('github', { name: [name] })
         if (options.add) {
           if (repo) return session.text('.add-unchanged', [name])
           const secret = Random.id()
@@ -128,7 +128,7 @@ export function apply(ctx: Context, config: Config) {
           unsubscribe(name)
           await Promise.all([
             updateChannels(),
-            ctx.database.remove('github', [name]),
+            ctx.database.remove('github', { name: [name] }),
           ])
           return session.text('.delete-succeeded', [name])
         }
@@ -176,7 +176,7 @@ export function apply(ctx: Context, config: Config) {
         const webhooks = session.channel.githubWebhooks
         if (options.add) {
           if (webhooks[name]) return session.text('.add-unchanged', [name])
-          const [repo] = await ctx.database.get('github', [name])
+          const [repo] = await ctx.database.get('github', { name: [name] })
           if (!repo) {
             const dispose = session.middleware(({ content }, next) => {
               dispose()
@@ -272,7 +272,7 @@ export function apply(ctx: Context, config: Config) {
     if (!payload) return _ctx.status = 400
     const fullEvent = payload.action ? `${event}/${payload.action}` : event
     logger.debug('received %s (%s)', fullEvent, id)
-    const [data] = await database.get('github', { id: [webhookId] })
+    const [data] = await database.get('github', [webhookId])
     // 202：服务器已接受请求，但尚未处理
     // 在 github.repos -a 时确保获得一个 2xx 的状态码
     if (!data) return _ctx.status = 202
@@ -283,9 +283,7 @@ export function apply(ctx: Context, config: Config) {
 
     if (data.name !== repoFullName) {
       // repo renamed
-      // await database.set('github', webhookId, { name: repoFullName.toLowerCase() })
       await database.upsert('github', [{ name: repoFullName, id: webhookId, secret: data.secret }])
-      await database.remove('github', { name: data.name })
 
       unsubscribe(data.name)
       const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'githubWebhooks'])

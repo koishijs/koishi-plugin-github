@@ -90,8 +90,6 @@ export class GitHub extends Service {
       id: 'integer',
       name: 'string(50)',
       secret: 'string(50)',
-    }, {
-      primary: 'name',
     })
   }
 
