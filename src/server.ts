@@ -1,7 +1,7 @@
 import { EventConfig } from './events'
-import axios, { AxiosError, Method } from 'axios'
+import { Method } from 'axios'
 import { Context, Dict, Logger, Quester, Schema, segment, Service, Session, Time } from 'koishi'
-import {} from '@koishijs/plugin-puppeteer'
+import {} from 'koishi-plugin-puppeteer'
 
 declare module 'koishi' {
   interface Context {
@@ -130,8 +130,7 @@ export class GitHub extends Service {
     try {
       return await this._request(method, url, session, body, headers)
     } catch (error) {
-      const { response } = error as AxiosError
-      if (response?.status !== 401) throw error
+      if (!Quester.isAxiosError(error) || error.response?.status !== 401) throw error
     }
 
     try {
@@ -162,7 +161,7 @@ export class ReplyHandler {
     try {
       await this.github.request(method, url, this.session, body, headers)
     } catch (err) {
-      if (!axios.isAxiosError(err)) throw err
+      if (!Quester.isAxiosError(err)) throw err
       logger.warn(err)
       return message
     }

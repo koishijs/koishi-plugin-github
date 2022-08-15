@@ -1,9 +1,9 @@
 import { createHmac } from 'crypto'
 import { encode } from 'querystring'
-import { camelize, Context, Dict, Logger, Random, sanitize, Session } from 'koishi'
+import { camelize, Context, Dict, Logger, Quester, Random, sanitize, Session } from 'koishi'
 import { addListeners, CommonPayload, defaultEvents, EventConfig } from './events'
 import { Config, GitHub, ReplyHandler, ReplyPayloads, ReplySession } from './server'
-import axios, { Method } from 'axios'
+import { Method } from 'axios'
 
 export * from './server'
 
@@ -87,10 +87,10 @@ export function apply(ctx: Context, config: Config) {
               },
             })
           } catch (err) {
-            if (!axios.isAxiosError(err)) throw err
-            if (err.response?.status === 404) {
+            if (!Quester.isAxiosError(err) || !err.response) throw err
+            if (err.response.status === 404) {
               return session.text('github.repo-not-found', [name])
-            } else if (err.response?.status === 403) {
+            } else if (err.response.status === 403) {
               return session.text('github.forbidden')
             } else {
               logger.warn(err)
@@ -109,7 +109,7 @@ export function apply(ctx: Context, config: Config) {
           try {
             await ctx.github.request('DELETE', `${url}/${repo.id}`, session)
           } catch (err) {
-            if (!axios.isAxiosError(err)) throw err
+            if (!Quester.isAxiosError(err) || !err.response) throw err
             if (err.response.status !== 404) {
               logger.warn(err)
               return session.text('.delete-failed', [name])
@@ -300,10 +300,8 @@ export function apply(ctx: Context, config: Config) {
     }
     _ctx.status = 200
     if (payload.action) {
-      // @ts-ignore
       app.emit(`github/${fullEvent}` as any, payload)
     }
-    // @ts-ignore
     app.emit(`github/${event}` as any, payload)
   })
 
@@ -344,6 +342,7 @@ export function apply(ctx: Context, config: Config) {
       const targets = Object.keys(repoConfig).filter((id) => {
         const baseConfig = repoConfig[id][base] || {}
         if (baseConfig === false) return
+        // payload.action may be undefined
         if (payload.action && baseConfig !== true) {
           const action = camelize(payload.action)
           const actionConfig = baseConfig[action]
