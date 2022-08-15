@@ -1,11 +1,8 @@
 name: Build
 
 on:
-  - push
-  - pull_request
-
-env:
-  CI: true
+  push:
+  pull_request:
 
 jobs:
   build:
@@ -23,15 +20,29 @@ jobs:
       - name: Build
         run: yarn build
 
-  docs:
-    if: ${{ github.ref == 'refs/heads/master' }}
+  test:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [14, 16, 18]
+
     steps:
-      - name: Trigger Docs
-        run: >
-          curl
-          -X POST
-          -H "Accept: application/vnd.github+json"
-          -H "Authorization: token ${{ secrets.WORKFLOW_TOKEN }}"
-          https://api.github.com/repos/koishijs/koishijs.github.io/actions/workflows/deploy.yml/dispatches
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install
+        run: yarn
+      - name: Unit test
+        run: yarn test:json
+      - name: Report coverage
+        if: ${{ matrix.node-version == 16 }}
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/coverage-final.json
+          name: codecov
