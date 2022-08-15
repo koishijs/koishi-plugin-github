@@ -283,7 +283,7 @@ export function apply(ctx: Context, config: Config) {
 
     if (data.name !== repoFullName) {
       // repo renamed
-      await database.upsert('github', [{ name: repoFullName, id: webhookId, secret: data.secret }])
+      await database.set('github', webhookId, { name: repoFullName, secret: data.secret })
 
       unsubscribe(data.name)
       const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'githubWebhooks'])
