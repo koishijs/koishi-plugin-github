@@ -1,10 +1,11 @@
 import { App, Bot, Random } from 'koishi'
 import { expect, use } from 'chai'
-import { readdirSync } from 'fs-extra'
+import { readdirSync } from 'fs'
 import { resolve } from 'path'
 import nock from 'nock'
 import * as jest from 'jest-mock'
 import * as github from '../src'
+import help from '@koishijs/plugin-help'
 import mock from '@koishijs/plugin-mock'
 import memory from '@koishijs/plugin-database-memory'
 import { Method } from 'axios'
@@ -15,10 +16,10 @@ use(shape)
 use(promise)
 
 const app = new App({
-  port: 10000,
   prefix: '.',
 })
 
+app.plugin(help)
 app.plugin(memory)
 app.plugin(mock)
 app.plugin(github)
@@ -44,19 +45,18 @@ before(async () => {
 const snapshot = require('./index.snap')
 
 const apiScope = nock('https://api.github.com')
-const tokenInterceptor = nock('https://github.com').post('/login/oauth/access_token')
+const tokenInterceptor = nock('https://github.com').post('/login/oauth/access_token?state=foo-bar-baz')
 
-const ghAccessToken = Random.id()
-const ghRefreshToken = Random.id()
+const accessToken = Random.id()
+const refreshToken = Random.id()
 const payload = {
-  access_token: ghAccessToken,
-  refresh_token: ghRefreshToken,
+  access_token: accessToken,
+  refresh_token: refreshToken,
 }
 
 describe('koishi-plugin-github', () => {
   describe('Basic Support', () => {
     it('authorize server', async () => {
-      tokenInterceptor.reply(200, payload)
       await expect(app.mock.webhook.get('/github/authorize')).to.eventually.have.property('code', 400)
       await expect(app.mock.webhook.get('/github/authorize?state=123')).to.eventually.have.property('code', 403)
       await expect(app.mock.webhook.get('/github/authorize?state=123&state=456')).to.eventually.have.property('code', 400)
@@ -69,12 +69,13 @@ describe('koishi-plugin-github', () => {
     it('github.authorize', async () => {
       const uuid = jest.spyOn(Random, 'id')
       uuid.mockReturnValue('foo-bar-baz')
+      tokenInterceptor.reply(200, payload)
       await ses.shouldReply('.github.authorize', '请输入用户名。')
       await ses.shouldReply('.github.authorize satori', /^请点击下面的链接继续操作：/)
+      await expect(app.mock.webhook.get('/github/authorize')).to.eventually.have.property('code', 400)
       await expect(app.mock.webhook.get('/github/authorize?state=foo-bar-baz')).to.eventually.have.property('code', 200)
       await expect(app.database.getUser('mock', '123')).to.eventually.have.shape({
-        ghAccessToken,
-        ghRefreshToken,
+        github: { accessToken, refreshToken },
       })
       uuid.mockRestore()
     })
@@ -88,12 +89,12 @@ describe('koishi-plugin-github', () => {
       await ses.shouldReply('.github.repos -a foo/bar', '仓库不存在或您无权访问。')
       apiScope.post('/repos/foo/bar/hooks').reply(403)
       await ses.shouldReply('.github.repos -a foo/bar', '第三方访问受限，请尝试授权此应用。\nhttps://docs.github.com/articles/restricting-access-to-your-organization-s-data/')
-      apiScope.post('/repos/foo/bar/hooks').reply(400)
+      apiScope.post('/repos/foo/bar/hooks').reply(500)
       await ses.shouldReply('.github.repos -a foo/bar', '由于未知原因添加仓库失败。')
     })
 
     it('github (check context)', async () => {
-      await ses3.shouldReply('.github', /^github\nGitHub 相关功能/)
+      await ses3.shouldReply('.github', /^github <user>\nGitHub 相关功能/)
       await ses3.shouldReply('.github -l', '当前不是群聊上下文。')
       await ses3.shouldReply('.github -a foo/bar', '当前不是群聊上下文。')
       await ses.shouldReply('.github -l', 'koishijs/koishi')
@@ -109,24 +110,24 @@ describe('koishi-plugin-github', () => {
       await ses.shouldReply('.github.repos -a foo/bar', '已经添加过仓库 foo/bar。')
     })
 
+    it('github (unsubscribe repo)', async () => {
+      await ses.shouldReply('.github -d foo/bar', '移除订阅成功！')
+      await ses.shouldReply('.github -d foo/bar', '尚未在当前频道订阅过仓库 foo/bar。')
+    })
+
     it('github.repos (remove repo)', async () => {
       apiScope.delete('/repos/foo/bar/hooks/999').reply(403)
-      await ses.shouldReply('.github.repos -d foo/bar', '移除仓库失败。')
+      await ses.shouldReply('.github.repos -d foo/bar', '由于未知原因移除仓库失败。')
       apiScope.delete('/repos/foo/bar/hooks/999').reply(200)
       await ses.shouldReply('.github.repos -d foo/bar', '移除仓库成功！')
       await ses.shouldReply('.github.repos -d foo/bar', '尚未添加过仓库 foo/bar。')
     })
 
     it('github.repos (add repo)', async () => {
-      await ses.shouldReply('.github.repos -l', '当前没有监听的仓库。')
+      await ses.shouldReply('.github.repos', '当前没有监听的仓库。')
       apiScope.post('/repos/koishijs/koishi/hooks').reply(200, { id: 999 })
       await ses.shouldReply('.github.repos -a koishijs/koishi', '添加仓库成功！')
-      await ses.shouldReply('.github.repos -l', 'koishijs/koishi')
-    })
-
-    it('github (unsubscribe repo)', async () => {
-      await ses.shouldReply('.github -d foo/bar', '移除订阅成功！')
-      await ses.shouldReply('.github -d foo/bar', '尚未在当前频道订阅过仓库 foo/bar。')
+      await ses.shouldReply('.github.repos', 'koishijs/koishi')
     })
 
     it('github.issue', async () => {
@@ -140,7 +141,7 @@ describe('koishi-plugin-github', () => {
       await ses.shouldReply('.github.star', '请输入仓库名。')
       await ses.shouldReply('.github.star -r foo', '请输入正确的仓库名。')
       apiScope.put('/user/starred/koishijs/koishi').reply(200)
-      await ses.shouldReply('.github.star -r koishijs/koishi', '创建成功！')
+      await ses.shouldReply('.github.star -r koishijs/koishi', '操作成功！')
     })
   })
 

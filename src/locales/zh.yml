@@ -15,13 +15,13 @@ commands:
       empty: 当前没有监听的仓库。
       add-unchanged: 已经添加过仓库 {0}。
       add-succeeded: 添加仓库成功！
-      add-failed: 由于未知原因添加仓库失败！
+      add-failed: 由于未知原因添加仓库失败。
       delete-unchanged: 尚未添加过仓库 {0}。
       delete-succeeded: 移除仓库成功！
-      delete-failed: 由于未知原因移除仓库失败！
+      delete-failed: 由于未知原因移除仓库失败。
 
   github:
-    description: GitHub
+    description: GitHub 相关功能
     options:
       list: 查看当前频道订阅的仓库列表
       add: 为当前频道添加仓库订阅
@@ -49,7 +49,7 @@ github:
   repo-expected: 请输入仓库名。
   repo-invalid: 请输入正确的仓库名。
   repo-not-found: 仓库不存在或您无权访问。
-  forbidden: |
+  forbidden: |-
     第三方访问受限，请尝试授权此应用。
     https://docs.github.com/articles/restricting-access-to-your-organization-s-data/
   require-auth: 要使用此功能，请对机器人进行授权。输入你的 GitHub 用户名。

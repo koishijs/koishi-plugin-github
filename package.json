@@ -39,8 +39,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -b",
-    "test": "mocha -r esbuild-register tests/*.spec.ts",
+    "build": "atsc -b",
+    "test": "mocha -r esbuild-register -r yml-register tests/*.spec.ts",
     "test:text": "shx rm -rf coverage && c8 -r text yarn test",
     "test:json": "shx rm -rf coverage && c8 -r json yarn test",
     "test:html": "shx rm -rf coverage && c8 -r html yarn test"
@@ -53,6 +53,7 @@
     "@types/node": "^18.7.4",
     "@koishijs/plugin-database-memory": "^1.4.1",
     "@koishijs/plugin-mock": "^2.0.0",
+    "atsc": "^1.1.1",
     "axios": "^0.24.0",
     "c8": "^7.12.0",
     "chai": "^4.3.6",
@@ -66,7 +67,8 @@
     "mocha": "^9.2.2",
     "nock": "^13.2.9",
     "shx": "^0.3.4",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "yml-register": "^1.1.0"
   },
   "peerDependencies": {
     "koishi": "^4.8.4",
