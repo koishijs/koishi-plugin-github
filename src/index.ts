@@ -33,8 +33,8 @@ export function apply(ctx: Context, config: Config) {
     const { code, state } = _ctx.query
     const data = await ctx.github.getTokens({ code, state, redirect_uri: redirect })
     await database.setUser('id', id, {
-      ghAccessToken: data.access_token,
-      ghRefreshToken: data.refresh_token,
+      'github.accessToken': data.access_token,
+      'github.refreshToken': data.refresh_token,
     })
     return _ctx.status = 200
   })
@@ -59,7 +59,7 @@ export function apply(ctx: Context, config: Config) {
   const repoRegExp = /^[\w.-]+\/[\w.-]+$/
 
   ctx.command('github.repos [name]')
-    .userFields(['ghAccessToken', 'ghRefreshToken'])
+    .userFields(['github'])
     .option('add', '-a')
     .option('delete', '-d')
     .option('subscribe', '-s')
@@ -67,7 +67,7 @@ export function apply(ctx: Context, config: Config) {
       if (options.add || options.delete) {
         if (!name) return session.text('github.repo-expected')
         if (!repoRegExp.test(name)) return session.text('github.repo-invalid')
-        if (!session.user.ghAccessToken) {
+        if (!session.user.github?.accessToken) {
           return ctx.github.authorize(session, session.text('github.require-auth'))
         }
 
@@ -216,12 +216,12 @@ export function apply(ctx: Context, config: Config) {
   }
 
   ctx.command('github.issue [title] [body:text]')
-    .userFields(['ghAccessToken', 'ghRefreshToken'])
+    .userFields(['github'])
     .option('repo', '-r [repo:string]')
     .action(async ({ session, options }, title, body) => {
       if (!options.repo) return session.text('github.repo-expected')
       if (!repoRegExp.test(options.repo)) return session.text('github.repo-invalid')
-      if (!session.user.ghAccessToken) {
+      if (!session.user.github?.accessToken) {
         return ctx.github.authorize(session, session.text('github.require-auth'))
       }
 
@@ -232,12 +232,12 @@ export function apply(ctx: Context, config: Config) {
     })
 
   ctx.command('github.star [repo]')
-    .userFields(['ghAccessToken', 'ghRefreshToken'])
+    .userFields(['github'])
     .option('repo', '-r [repo:string]')
     .action(async ({ session, options }) => {
       if (!options.repo) return session.text('github.repo-expected')
       if (!repoRegExp.test(options.repo)) return session.text('github.repo-invalid')
-      if (!session.user.ghAccessToken) {
+      if (!session.user.github?.accessToken) {
         return ctx.github.authorize(session, session.text('github.require-auth'))
       }
 
@@ -308,8 +308,7 @@ export function apply(ctx: Context, config: Config) {
   ctx.before('attach-user', (session, fields) => {
     if (!session.quote) return
     if (history[session.quote.messageId]) {
-      fields.add('ghAccessToken')
-      fields.add('ghRefreshToken')
+      fields.add('github')
     }
   })
 

@@ -9,8 +9,10 @@ declare module 'koishi' {
   }
 
   interface User {
-    ghAccessToken: string
-    ghRefreshToken: string
+    github: {
+      accessToken: string
+      refreshToken: string
+    }
   }
 
   interface Channel {
@@ -59,7 +61,7 @@ export interface OAuth {
   scope: string
 }
 
-export type ReplySession = Session<'ghAccessToken' | 'ghRefreshToken'>
+export type ReplySession = Session<'github'>
 
 const logger = new Logger('github')
 
@@ -72,8 +74,8 @@ export class GitHub extends Service {
     this.http = ctx.http.extend({})
 
     ctx.model.extend('user', {
-      ghAccessToken: 'string(50)',
-      ghRefreshToken: 'string(50)',
+      'github.accessToken': 'string(50)',
+      'github.refreshToken': 'string(50)',
     })
 
     ctx.model.extend('channel', {
@@ -105,7 +107,7 @@ export class GitHub extends Service {
       data,
       headers: {
         accept: 'application/vnd.github.v3+json',
-        authorization: `token ${session.user.ghAccessToken}`,
+        authorization: `token ${session.user.github.accessToken}`,
         ...headers,
       },
       timeout: this.config.requestTimeout,
@@ -123,7 +125,7 @@ export class GitHub extends Service {
   }
 
   async request(method: Method, url: string, session: ReplySession, body?: any, headers?: Dict) {
-    if (!session.user.ghAccessToken) {
+    if (!session.user.github.accessToken) {
       return this.authorize(session, session.text('github.require-auth'))
     }
 
@@ -135,11 +137,11 @@ export class GitHub extends Service {
 
     try {
       const data = await this.getTokens({
-        refresh_token: session.user.ghRefreshToken,
+        refresh_token: session.user.github.accessToken,
         grant_type: 'refresh_token',
       })
-      session.user.ghAccessToken = data.access_token
-      session.user.ghRefreshToken = data.refresh_token
+      session.user.github.accessToken = data.access_token
+      session.user.github.refreshToken = data.refresh_token
     } catch {
       return this.authorize(session, session.text('github.auth-expired'))
     }
