@@ -84,8 +84,6 @@ export class GitHub extends Service {
       id: 'integer',
       name: 'string(50)',
       secret: 'string(50)',
-    }, {
-      primary: 'name',
     })
   }
 
@@ -166,12 +164,12 @@ export class ReplyHandler {
     } catch (err) {
       if (!axios.isAxiosError(err)) throw err
       logger.warn(err)
-      return this.session.send(message)
+      return message
     }
   }
 
   link(url: string) {
-    return this.session.send(url)
+    return url
   }
 
   react(url: string) {
@@ -245,10 +243,10 @@ export class ReplyHandler {
       buffer = await page.screenshot({ clip })
     } catch (error) {
       new Logger('puppeteer').warn(error)
-      return this.session.send(this.session.text('github.screenshot-failed'))
+      return this.session.text('github.screenshot-failed')
     } finally {
       await page.close()
     }
-    return this.session.send(segment.image(buffer))
+    return segment.image(buffer)
   }
 }

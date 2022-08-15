@@ -73,7 +73,7 @@ export function apply(ctx: Context, config: Config) {
 
         name = name.toLowerCase()
         const url = `https://api.github.com/repos/${name}/hooks`
-        const [repo] = await ctx.database.get('github', [name])
+        const [repo] = await ctx.database.get('github', { name: [name] })
         if (options.add) {
           if (repo) return session.text('.add-unchanged', [name])
           const secret = Random.id()
@@ -128,7 +128,7 @@ export function apply(ctx: Context, config: Config) {
           unsubscribe(name)
           await Promise.all([
             updateChannels(),
-            ctx.database.remove('github', [name]),
+            ctx.database.remove('github', { name: [name] }),
           ])
           return session.text('.delete-succeeded', [name])
         }
@@ -176,7 +176,7 @@ export function apply(ctx: Context, config: Config) {
         const webhooks = session.channel.githubWebhooks
         if (options.add) {
           if (webhooks[name]) return session.text('.add-unchanged', [name])
-          const [repo] = await ctx.database.get('github', [name])
+          const [repo] = await ctx.database.get('github', { name: [name] })
           if (!repo) {
             const dispose = session.middleware(({ content }, next) => {
               dispose()
@@ -267,21 +267,43 @@ export function apply(ctx: Context, config: Config) {
     const event = _ctx.headers['x-github-event']
     const signature = _ctx.headers['x-hub-signature-256']
     const id = _ctx.headers['x-github-delivery']
+    const webhookId = +_ctx.headers['x-github-hook-id']
     const payload = safeParse(_ctx.request.body.payload)
     if (!payload) return _ctx.status = 400
     const fullEvent = payload.action ? `${event}/${payload.action}` : event
     logger.debug('received %s (%s)', fullEvent, id)
-    const [data] = await database.get('github', [payload.repository.full_name.toLowerCase()])
+    const [data] = await database.get('github', [webhookId])
     // 202：服务器已接受请求，但尚未处理
     // 在 github.repos -a 时确保获得一个 2xx 的状态码
     if (!data) return _ctx.status = 202
     if (signature !== `sha256=${createHmac('sha256', data.secret).update(_ctx.request.rawBody).digest('hex')}`) {
       return _ctx.status = 403
     }
+    const repoFullName = payload.repository.full_name.toLowerCase()
+
+    if (data.name !== repoFullName) {
+      // repo renamed
+      await database.set('github', webhookId, { name: repoFullName, secret: data.secret })
+
+      unsubscribe(data.name)
+      const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'githubWebhooks'])
+      await ctx.database.upsert('channel', channels.filter(({ platform, id, githubWebhooks }) => {
+        const shouldUpdate = githubWebhooks[data.name]
+        if (shouldUpdate) {
+          githubWebhooks[repoFullName] = shouldUpdate
+          subscribe(repoFullName, `${platform}:${id}`, githubWebhooks[repoFullName])
+          delete githubWebhooks[data.name]
+        }
+
+        return shouldUpdate
+      }))
+    }
     _ctx.status = 200
     if (payload.action) {
+      // @ts-ignore
       app.emit(`github/${fullEvent}` as any, payload)
     }
+    // @ts-ignore
     app.emit(`github/${event}` as any, payload)
   })
 
@@ -322,8 +344,8 @@ export function apply(ctx: Context, config: Config) {
       const targets = Object.keys(repoConfig).filter((id) => {
         const baseConfig = repoConfig[id][base] || {}
         if (baseConfig === false) return
-        const action = camelize(payload.action)
-        if (action && baseConfig !== true) {
+        if (payload.action && baseConfig !== true) {
+          const action = camelize(payload.action)
           const actionConfig = baseConfig[action]
           if (actionConfig === false) return
           if (actionConfig !== true && !(defaultEvents[base] || {})[action]) return
