@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-github",
   "description": "GitHub Toolkit for Koishi",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -40,7 +40,7 @@
   },
   "scripts": {
     "build": "atsc -b",
-    "test": "mocha -r esbuild-register -r yml-register tests/*.spec.ts",
+    "test": "mocha --exit -r esbuild-register -r yml-register tests/*.spec.ts",
     "test:text": "shx rm -rf coverage && c8 -r text yarn test",
     "test:json": "shx rm -rf coverage && c8 -r json yarn test",
     "test:html": "shx rm -rf coverage && c8 -r html yarn test"
@@ -52,6 +52,7 @@
     "@types/mocha": "^9.1.1",
     "@types/node": "^18.7.5",
     "@koishijs/plugin-database-memory": "^1.4.1",
+    "@koishijs/plugin-help": "^1.1.1",
     "@koishijs/plugin-mock": "^2.0.2",
     "atsc": "^1.1.1",
     "axios": "^0.24.0",

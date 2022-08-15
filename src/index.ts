@@ -277,25 +277,26 @@ export function apply(ctx: Context, config: Config) {
     if (signature !== `sha256=${createHmac('sha256', data.secret).update(_ctx.request.rawBody).digest('hex')}`) {
       return _ctx.status = 403
     }
-    const repoFullName = payload.repository.full_name.toLowerCase()
+    const fullName = payload.repository.full_name.toLowerCase()
 
-    if (data.name !== repoFullName) {
+    if (data.name !== fullName) {
       // repo renamed
-      await database.set('github', webhookId, { name: repoFullName, secret: data.secret })
+      await database.set('github', webhookId, { name: fullName, secret: data.secret })
 
       unsubscribe(data.name)
       const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'github'])
       await ctx.database.upsert('channel', channels.filter(({ platform, id, github }) => {
         const shouldUpdate = github.webhooks[data.name]
         if (shouldUpdate) {
-          github.webhooks[repoFullName] = shouldUpdate
-          subscribe(repoFullName, `${platform}:${id}`, github.webhooks[repoFullName])
+          github.webhooks[fullName] = shouldUpdate
+          subscribe(fullName, `${platform}:${id}`, github.webhooks[fullName])
           delete github.webhooks[data.name]
         }
 
         return shouldUpdate
       }))
     }
+
     _ctx.status = 200
     if (payload.action) {
       app.emit(`github/${fullEvent}` as any, payload)
@@ -363,7 +364,7 @@ export function apply(ctx: Context, config: Config) {
         ctx.github.history[id] = result[1]
       }
 
-      setTimeout(() => {
+      ctx.setTimeout(() => {
         for (const id of messageIds) {
           delete ctx.github.history[id]
         }

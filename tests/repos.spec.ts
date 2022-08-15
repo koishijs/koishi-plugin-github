@@ -2,8 +2,8 @@ import { App, Random } from 'koishi'
 import { expect, use } from 'chai'
 import { oauth, api, mockResponse } from './utils'
 import * as jest from 'jest-mock'
-import * as github from '../src'
-import help from '@koishijs/plugin-help'
+import * as github from 'koishi-plugin-github'
+import * as help from '@koishijs/plugin-help'
 import mock from '@koishijs/plugin-mock'
 import memory from '@koishijs/plugin-database-memory'
 import shape from 'chai-shape'
@@ -44,6 +44,8 @@ before(async () => {
     reply: [`https://api.github.com/repos/koishijs/koishi/issues/19/comments`],
   }
 })
+
+after(() => app.stop())
 
 describe('koishi-plugin-github (repos)', () => {
   it('authorize server', async () => {

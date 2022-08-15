@@ -4,7 +4,7 @@ import { readdirSync } from 'fs'
 import { resolve } from 'path'
 import { mockResponse } from './utils'
 import * as jest from 'jest-mock'
-import * as github from '../src'
+import * as github from 'koishi-plugin-github'
 import mock from '@koishijs/plugin-mock'
 import memory from '@koishijs/plugin-database-memory'
 
@@ -34,6 +34,8 @@ before(async () => {
   app.plugin(github)
   await sleep(0)
 })
+
+after(() => app.stop())
 
 const snapshot = require('./index.snap')
 
