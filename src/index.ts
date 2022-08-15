@@ -267,7 +267,7 @@ export function apply(ctx: Context, config: Config) {
     const event = _ctx.headers['x-github-event']
     const signature = _ctx.headers['x-hub-signature-256']
     const id = _ctx.headers['x-github-delivery']
-    const webhookId = Number(_ctx.headers['x-github-hook-id'])
+    const webhookId = +_ctx.headers['x-github-hook-id']
     const payload = safeParse(_ctx.request.body.payload)
     if (!payload) return _ctx.status = 400
     const fullEvent = payload.action ? `${event}/${payload.action}` : event
