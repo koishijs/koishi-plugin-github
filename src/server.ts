@@ -67,6 +67,7 @@ const logger = new Logger('github')
 
 export class GitHub extends Service {
   private http: Quester
+  public history: Dict<ReplyPayloads> = Object.create(null)
 
   constructor(public ctx: Context, public config: Config) {
     super(ctx, 'github', true)
@@ -137,7 +138,7 @@ export class GitHub extends Service {
 
     try {
       const data = await this.getTokens({
-        refresh_token: session.user.github.accessToken,
+        refresh_token: session.user.github.refreshToken,
         grant_type: 'refresh_token',
       })
       session.user.github.accessToken = data.access_token

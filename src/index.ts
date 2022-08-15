@@ -2,7 +2,7 @@ import { createHmac } from 'crypto'
 import { encode } from 'querystring'
 import { camelize, Context, Dict, Logger, Quester, Random, sanitize, Session } from 'koishi'
 import { addListeners, CommonPayload, defaultEvents, EventConfig } from './events'
-import { Config, GitHub, ReplyHandler, ReplyPayloads, ReplySession } from './server'
+import { Config, GitHub, ReplyHandler, ReplySession } from './server'
 import { Method } from 'axios'
 
 export * from './server'
@@ -22,7 +22,7 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.plugin(GitHub, config)
 
-  const tokens: Dict<string> = {}
+  const tokens: Dict<string> = Object.create(null)
 
   ctx.router.get(config.path + '/authorize', async (_ctx) => {
     const token = _ctx.query.state
@@ -255,8 +255,6 @@ export function apply(ctx: Context, config: Config) {
 
   const reactions = ['+1', '-1', 'laugh', 'confused', 'heart', 'hooray', 'rocket', 'eyes']
 
-  const history: Dict<ReplyPayloads> = {}
-
   function safeParse(source: string) {
     try {
       return JSON.parse(source)
@@ -307,7 +305,7 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.before('attach-user', (session, fields) => {
     if (!session.quote) return
-    if (history[session.quote.messageId]) {
+    if (ctx.github.history[session.quote.messageId]) {
       fields.add('github')
     }
   })
@@ -315,11 +313,11 @@ export function apply(ctx: Context, config: Config) {
   ctx.middleware((session: ReplySession, next) => {
     if (!session.quote) return next()
     const body = session.parsed.content.trim()
-    const payloads = history[session.quote.messageId]
+    const payloads = ctx.github.history[session.quote.messageId]
     if (!body || !payloads) return next()
 
     let name: string, message: string
-    if (session.parsed.prefix !== null) {
+    if (session.parsed.prefix) {
       name = body.split(' ', 1)[0]
       message = body.slice(name.length).trim()
     } else {
@@ -362,12 +360,12 @@ export function apply(ctx: Context, config: Config) {
 
       // step 4: save message ids for interactions
       for (const id of messageIds) {
-        history[id] = result[1]
+        ctx.github.history[id] = result[1]
       }
 
       setTimeout(() => {
         for (const id of messageIds) {
-          delete history[id]
+          delete ctx.github.history[id]
         }
       }, config.replyTimeout)
     })
