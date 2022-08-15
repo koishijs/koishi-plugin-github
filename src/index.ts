@@ -117,10 +117,10 @@ export function apply(ctx: Context, config: Config) {
           }
 
           async function updateChannels() {
-            const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'githubWebhooks'])
-            return ctx.database.upsert('channel', channels.filter(({ githubWebhooks }) => {
-              const shouldUpdate = githubWebhooks[name]
-              delete githubWebhooks[name]
+            const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'github'])
+            return ctx.database.upsert('channel', channels.filter(({ github }) => {
+              const shouldUpdate = github.webhooks[name]
+              delete github.webhooks[name]
               return shouldUpdate
             }))
           }
@@ -155,14 +155,14 @@ export function apply(ctx: Context, config: Config) {
 
   ctx.command('github [name]')
     .alias('gh')
-    .channelFields(['githubWebhooks'])
+    .channelFields(['github'])
     .option('list', '-l', { hidden })
     .option('add', '-a', { hidden, authority: 2 })
     .option('delete', '-d', { hidden, authority: 2 })
     .action(async ({ session, options }, name) => {
       if (options.list) {
         if (!session.channel) return session.text('.private-context')
-        const names = Object.keys(session.channel.githubWebhooks)
+        const names = Object.keys(session.channel.github.webhooks)
         if (!names.length) return session.text('.empty')
         return names.join('\n')
       }
@@ -173,7 +173,7 @@ export function apply(ctx: Context, config: Config) {
         if (!repoRegExp.test(name)) return session.text('github.repo-invalid')
 
         name = name.toLowerCase()
-        const webhooks = session.channel.githubWebhooks
+        const webhooks = session.channel.github.webhooks
         if (options.add) {
           if (webhooks[name]) return session.text('.add-unchanged', [name])
           const [repo] = await ctx.database.get('github', { name: [name] })
@@ -245,10 +245,10 @@ export function apply(ctx: Context, config: Config) {
     })
 
   ctx.on('ready', async () => {
-    const channels = await ctx.database.getAssignedChannels(['id', 'platform', 'githubWebhooks'])
-    for (const { id, platform, githubWebhooks } of channels) {
-      for (const repo in githubWebhooks) {
-        subscribe(repo, `${platform}:${id}`, githubWebhooks[repo])
+    const channels = await ctx.database.getAssignedChannels(['id', 'platform', 'github'])
+    for (const { id, platform, github } of channels) {
+      for (const repo in github.webhooks) {
+        subscribe(repo, `${platform}:${id}`, github.webhooks[repo])
       }
     }
   })
@@ -284,13 +284,13 @@ export function apply(ctx: Context, config: Config) {
       await database.set('github', webhookId, { name: repoFullName, secret: data.secret })
 
       unsubscribe(data.name)
-      const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'githubWebhooks'])
-      await ctx.database.upsert('channel', channels.filter(({ platform, id, githubWebhooks }) => {
-        const shouldUpdate = githubWebhooks[data.name]
+      const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'github'])
+      await ctx.database.upsert('channel', channels.filter(({ platform, id, github }) => {
+        const shouldUpdate = github.webhooks[data.name]
         if (shouldUpdate) {
-          githubWebhooks[repoFullName] = shouldUpdate
-          subscribe(repoFullName, `${platform}:${id}`, githubWebhooks[repoFullName])
-          delete githubWebhooks[data.name]
+          github.webhooks[repoFullName] = shouldUpdate
+          subscribe(repoFullName, `${platform}:${id}`, github.webhooks[repoFullName])
+          delete github.webhooks[data.name]
         }
 
         return shouldUpdate

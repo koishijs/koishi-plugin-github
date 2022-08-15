@@ -36,7 +36,9 @@ before(async () => {
   await app.mock.initUser('123', 3)
   await app.mock.initUser('456', 3)
   await app.mock.initChannel('999', app.bots[0].selfId, {
-    githubWebhooks: { 'koishijs/koishi': {} },
+    github: {
+      webhooks: { 'koishijs/koishi': {} },
+    },
   })
   app.github.history[messageId] = {
     reply: [`https://api.github.com/repos/koishijs/koishi/issues/19/comments`],

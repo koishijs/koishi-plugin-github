@@ -27,7 +27,9 @@ before(async () => {
   })
   await app.database.createChannel('mock', '999', {
     assignee: app.bots[0].selfId,
-    githubWebhooks: { 'koishijs/koishi': {} },
+    github: {
+      webhooks: { 'koishijs/koishi': {} },
+    },
   })
   app.plugin(github)
   await sleep(0)

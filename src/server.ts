@@ -16,7 +16,9 @@ declare module 'koishi' {
   }
 
   interface Channel {
-    githubWebhooks: Dict<EventConfig>
+    github: {
+      webhooks: Dict<EventConfig>
+    }
   }
 
   interface Tables {
@@ -80,7 +82,7 @@ export class GitHub extends Service {
     })
 
     ctx.model.extend('channel', {
-      githubWebhooks: 'json',
+      'github.webhooks': 'json',
     })
 
     ctx.model.extend('github', {
