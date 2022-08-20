@@ -164,7 +164,7 @@ export function apply(ctx: Context, config: Config) {
         if (!session.channel) return session.text('.private-context')
         const names = Object.keys(session.channel.github.webhooks)
         if (!names.length) return session.text('.empty')
-        return names.join('\n')
+        return names.sort().join('\n')
       }
 
       if (options.add || options.delete) {

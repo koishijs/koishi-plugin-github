@@ -273,8 +273,9 @@ export function addListeners(on: <T extends EmitterWebhookEventName>(event: T, h
     return [`${sender.login} marked ${full_name}#${number} as ready for review`]
   })
 
-  on('push', ({ compare, pusher, commits, repository, ref, before, after }) => {
+  on('push', ({ compare, pusher, sender, commits, repository, ref, before, after }) => {
     const { full_name } = repository
+    if (sender.type === 'Bot') return
 
     // do not show branch create / delete
     if (/^0+$/.test(before) || /^0+$/.test(after)) return
