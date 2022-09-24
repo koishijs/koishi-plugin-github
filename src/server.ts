@@ -191,7 +191,8 @@ export class ReplyHandler {
     return segment.transform(source, {
       text: ({ content }) => content,
       image: ({ url }) => `![image](${url})`,
-    }, true)
+      default: false,
+    })
   }
 
   async reply(url: string, params?: Dict) {
