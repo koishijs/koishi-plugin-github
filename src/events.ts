@@ -95,10 +95,10 @@ export default function events(ctx: Context) {
   })
 
   onComment('issue_comment', ({ issue, repository }) => {
-    const { full_name } = repository
-    const { number, comments_url } = issue
+    const { comments_url } = issue
     const type = issue['pull_request'] ? 'pull request' : 'issue'
-    return [`${type} ${full_name}#${number}`, {
+    const name = getIssueName(issue, repository)
+    return [`${type} ${name}`, {
       reply: [comments_url],
       padding: [16, 16, 16, 88],
     }]
@@ -119,22 +119,21 @@ export default function events(ctx: Context) {
     }]
   })
 
-  function getIssueName(issue: Issue, repository: Repository) {
+  function getIssueName(issue: { number: number }, repository: Repository) {
     return `${repository.full_name}#${issue.number}`
   }
 
   onIssue('issues/transferred', ({ repository, issue, changes, sender }) => {
     const oldName = getIssueName(issue, repository)
     const newName = getIssueName(changes.new_issue, changes.new_repository)
-    return [`${sender.login} transferred issue ${oldName} to ${newName}`]
+    return [`${sender.login} transferred issue ${oldName} to ${newName}\n${issue.title}`]
   })
 
   onIssue('issues/opened', ({ repository, issue, changes, sender }) => {
-    const { full_name } = repository
-    const { title, body, number } = issue as Issue
-    const name = `${full_name}#${number}`
+    const { title, body } = issue as Issue
+    const name = getIssueName(issue, repository)
 
-    // issue transfer
+    // ignore issue transfer
     if (changes) return
     return [[
       `${sender.login} opened an issue ${name}`,
@@ -144,35 +143,34 @@ export default function events(ctx: Context) {
   })
 
   onIssue('issues/closed', ({ repository, issue, sender }) => {
-    const { full_name } = repository
-    const { title, number } = issue
-    return [`${sender.login} closed issue ${full_name}#${number}\n${title}`]
+    const name = getIssueName(issue, repository)
+    return [`${sender.login} closed issue ${name}\n${issue.title}`]
   })
 
   onComment('pull_request_review_comment', ({ repository, comment, pull_request }) => {
-    const { full_name } = repository
-    const { number } = pull_request
     const { path, url } = comment
-    return [`pull request review ${full_name}#${number}\nPath: ${path}`, {
+    const name = getIssueName(pull_request, repository)
+    return [`pull request review ${name}\nPath: ${path}`, {
       reply: [url],
     }]
   })
 
-  ctx.github.on('milestone/created', ({ repository, milestone, sender }) => {
+  ctx.github.on('milestone', ({ action, repository, milestone, sender }) => {
     const { full_name } = repository
-    const { title, description } = milestone
-    return [`${sender.login} created milestone ${title} for ${full_name}\n${description}`]
+    const { title } = milestone
+    if (!['opened', 'closed'].includes(action)) return
+    return [`${sender.login} ${action} milestone ${title} for ${full_name}`]
   })
 
   ctx.github.on('pull_request_review/submitted', ({ repository, review, pull_request }) => {
     if (!review.body) return
-    const { full_name } = repository
-    const { number, comments_url } = pull_request
+    const { comments_url } = pull_request
     const { user, html_url, body } = review
     if (user.type === 'Bot') return
 
+    const name = getIssueName(pull_request, repository)
     return [[
-      `${user.login} reviewed pull request ${full_name}#${number}`,
+      `${user.login} reviewed pull request ${name}`,
       transform(body),
     ].join('\n'), {
       link: [html_url],
@@ -199,27 +197,28 @@ export default function events(ctx: Context) {
   })
 
   onPullRequest('pull_request/closed', ({ repository, pull_request, sender }) => {
-    const { full_name } = repository
-    const { title, number, merged } = pull_request
+    const { title, merged } = pull_request
     const type = merged ? 'merged' : 'closed'
-    return [`${sender.login} ${type} pull request ${full_name}#${number}\n${title}`]
+    const name = getIssueName(pull_request, repository)
+    return [`${sender.login} ${type} pull request ${name}\n${title}`]
   })
 
   onPullRequest('pull_request/reopened', ({ repository, pull_request, sender }) => {
-    const { full_name } = repository
-    const { title, number } = pull_request
-    return [`${sender.login} reopened pull request ${full_name}#${number}\n${title}`]
+    const { title } = pull_request
+    const name = getIssueName(pull_request, repository)
+    return [`${sender.login} reopened pull request ${name}\n${title}`]
   })
 
   onPullRequest('pull_request/opened', ({ repository, pull_request, sender }) => {
-    const { full_name, owner } = repository
-    const { title, base, head, body, number, draft } = pull_request as PullRequest
+    const { owner } = repository
+    const { title, base, head, body, draft } = pull_request as PullRequest
 
     const prefix = new RegExp(`^${owner.login}:`)
     const baseLabel = base.label.replace(prefix, '')
     const headLabel = head.label.replace(prefix, '')
+    const name = getIssueName(pull_request, repository)
     return [[
-      `${sender.login} ${draft ? 'drafted' : 'opened'} a pull request ${full_name}#${number} (${baseLabel} ← ${headLabel})`,
+      `${sender.login} ${draft ? 'drafted' : 'opened'} a pull request ${name} (${baseLabel} ← ${headLabel})`,
       `Title: ${title}`,
       transform(body),
     ].join('\n')]
@@ -227,23 +226,20 @@ export default function events(ctx: Context) {
 
   onPullRequest('pull_request/review_requested', (payload) => {
     const { repository, pull_request, sender } = payload
-    const { full_name } = repository
-    const { number } = pull_request
+    const name = getIssueName(pull_request, repository)
     return ['requested_reviewer' in payload
-      ? `${sender.login} requested a review from ${payload.requested_reviewer.login} on ${full_name}#${number}`
-      : `${sender.login} requested a review from team ${payload.requested_team.name} on ${full_name}#${number}`]
+      ? `${sender.login} requested a review from ${payload.requested_reviewer.login} on ${name}`
+      : `${sender.login} requested a review from team ${payload.requested_team.name} on ${name}`]
   })
 
   onPullRequest('pull_request/converted_to_draft', ({ repository, pull_request, sender }) => {
-    const { full_name } = repository
-    const { number } = pull_request as PullRequest
-    return [`${sender.login} marked ${full_name}#${number} as draft`]
+    const name = getIssueName(pull_request, repository)
+    return [`${sender.login} marked ${name} as draft`]
   })
 
   onPullRequest('pull_request/ready_for_review', ({ repository, pull_request, sender }) => {
-    const { full_name } = repository
-    const { number } = pull_request as PullRequest
-    return [`${sender.login} marked ${full_name}#${number} as ready for review`]
+    const name = getIssueName(pull_request, repository)
+    return [`${sender.login} marked ${name} as ready for review`]
   })
 
   ctx.github.on('push', ({ compare, pusher, sender, commits, repository, ref, before, after }) => {

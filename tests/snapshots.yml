@@ -49,10 +49,13 @@ issues/opened.2: null
 # https://github.com/koishijs/console/issues/32
 issues/transferred: |-
   [GitHub] shigma transferred issue koishijs/koishi#797 to koishijs/console#32
+  Bug: yarn dev无法打开控制台
 
-milestone/created: |-
-  [GitHub] Shigma created milestone 3.0 for koishijs/koishi
-  koishi v3
+milestone/closed: |-
+  [GitHub] Shigma closed milestone 1.3 for koishijs/koishi
+
+milestone/opened: |-
+  [GitHub] shigma opened milestone 4.9 for koishijs/koishi
 
 pull_request/closed.1: |-
   [GitHub] Shigma closed pull request koishijs/koishi#97
