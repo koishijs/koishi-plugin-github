@@ -1,5 +1,5 @@
 import { EventPayloadMap, Issue, PullRequest, Repository, WebhookEventName } from '@octokit/webhooks-types/schema'
-import { Awaitable, Context, Dict } from 'koishi'
+import { Awaitable, Context } from 'koishi'
 import { EventData } from './server'
 import { transform } from './markdown'
 
@@ -148,10 +148,13 @@ export default function events(ctx: Context) {
   })
 
   onComment('pull_request_review_comment', ({ repository, comment, pull_request }) => {
-    const { path, url } = comment
+    const { full_name } = repository
+    const { number } = pull_request
+    const { id, path } = comment
     const name = getIssueName(pull_request, repository)
     return [`pull request review ${name}\nPath: ${path}`, {
-      reply: [url],
+      // https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment
+      reply: [`https://api.github.com/repos/${full_name}/pulls/${number}/comments/${id}/replies`],
     }]
   })
 
