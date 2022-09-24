@@ -1,7 +1,7 @@
 import { EventPayloadMap, Issue, PullRequest, Repository, WebhookEventName } from '@octokit/webhooks-types/schema'
+import { Awaitable, Context, Dict } from 'koishi'
 import { EventData } from './server'
 import { transform } from './markdown'
-import { Context } from 'koishi'
 
 type Camelize<S extends string> = S extends `${infer L}_${infer M}${infer R}` ? `${L}${Uppercase<M>}${Camelize<R>}` : S
 
@@ -28,14 +28,14 @@ export type Payload<T extends EmitterWebhookEventName> = T extends `${infer E}/$
   ? EventPayloadMap[E & WebhookEventName] & { action: A }
   : EventPayloadMap[T & WebhookEventName]
 
-export type EventHandler<T extends EmitterWebhookEventName, P = {}> = (payload: Payload<T>) => EventData<P>
+export type EventHandler<T extends EmitterWebhookEventName, P = {}> = (payload: Payload<T>) => Awaitable<EventData<P>>
 
 type FactoryCreator = <T extends EmitterWebhookEventName, P = {}>
-  (callback: (event: T, payload: Payload<T>, handler: EventHandler<T, P>) => EventData<P>)
+  (callback: (event: T, payload: Payload<T>, handler: EventHandler<T, P>) => Awaitable<EventData<P>>)
     => <E extends T>(event: E, handler?: EventHandler<E, P>) => void
 
 export default function events(ctx: Context) {
-  const createFactory: FactoryCreator = callback => (event, handler) => {
+  const createFactory: FactoryCreator = (callback) => (event, handler) => {
     ctx.github.on(event, payload => Reflect.apply(callback, null, [event, payload, handler]))
   }
 
@@ -45,11 +45,11 @@ export default function events(ctx: Context) {
     padding?: number[]
   }
 
-  const onComment = createFactory<CommentEvent, CommentReplyPayloads>((event, payload, handler) => {
+  const onComment = createFactory<CommentEvent, CommentReplyPayloads>(async (event, payload, handler) => {
     const { user, body, html_url, url } = payload.comment
     if (user.type === 'Bot') return
 
-    const [target, replies] = handler(payload)
+    const [target, replies] = await handler(payload)
     if (payload.action === 'deleted') {
       return [`${user.login} deleted a comment on ${target}`]
     }
@@ -104,25 +104,40 @@ export default function events(ctx: Context) {
     }]
   })
 
-  const onIssue = createFactory<SubEvent<'issues'>>((event, payload, handler) => {
+  const onIssue = createFactory<SubEvent<'issues'>>(async (event, payload, handler) => {
     const { user, url, html_url, comments_url } = payload.issue
     if (user.type === 'Bot') return
 
-    const [message, replies] = handler(payload)
-    return [message, {
+    const result = await handler(payload)
+    if (!result) return
+    return [result[0], {
       close: [url, comments_url],
       link: [html_url],
       react: [url + `/reactions`],
       reply: [comments_url],
-      ...replies,
+      ...result[1],
     }]
   })
 
-  onIssue('issues/opened', ({ repository, issue, sender }) => {
+  function getIssueName(issue: Issue, repository: Repository) {
+    return `${repository.full_name}#${issue.number}`
+  }
+
+  onIssue('issues/transferred', ({ repository, issue, changes, sender }) => {
+    const oldName = getIssueName(issue, repository)
+    const newName = getIssueName(changes.new_issue, changes.new_repository)
+    return [`${sender.login} transferred issue ${oldName} to ${newName}`]
+  })
+
+  onIssue('issues/opened', ({ repository, issue, changes, sender }) => {
     const { full_name } = repository
-    const { title, body, number } = issue
+    const { title, body, number } = issue as Issue
+    const name = `${full_name}#${number}`
+
+    // issue transfer
+    if (changes) return
     return [[
-      `${sender.login} opened an issue ${full_name}#${number}`,
+      `${sender.login} opened an issue ${name}`,
       `Title: ${title}`,
       transform(body),
     ].join('\n')]
@@ -165,11 +180,11 @@ export default function events(ctx: Context) {
     }]
   })
 
-  const onPullRequest = createFactory<SubEvent<'pull_request'>>((event, payload, handler) => {
+  const onPullRequest = createFactory<SubEvent<'pull_request'>>(async (event, payload, handler) => {
     const { user, url, html_url, issue_url, comments_url } = payload.pull_request
     if (user.type === 'Bot') return
 
-    const [message, replies] = handler(payload)
+    const [message, replies] = await handler(payload)
     return [message, {
       base: [url],
       close: [issue_url, comments_url],

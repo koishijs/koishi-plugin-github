@@ -33,11 +33,22 @@ issues/closed: |-
   [GitHub] Shigma closed issue koishijs/koishi#19
   Wie kann man um das Koishi zu installieren?
 
-# URL: https://github.com/koishijs/koishi/issues/19
-issues/opened: |-
+# issue transfer (destination)
+issues/edited.1: null
+
+# https://github.com/koishijs/koishi/issues/19
+issues/opened.1: |-
   [GitHub] simon300000 opened an issue koishijs/koishi#19
   Title: Wie kann man um das Koishi zu installieren?
   Ich verstecke Englisch und Chinesisch nicht! Gab es Personen, die mir helfen kann?
+
+# issue transfer (destination)
+issues/opened.2: null
+
+# issue transfer (source)
+# https://github.com/koishijs/console/issues/32
+issues/transferred: |-
+  [GitHub] shigma transferred issue koishijs/koishi#797 to koishijs/console#32
 
 milestone/created: |-
   [GitHub] Shigma created milestone 3.0 for koishijs/koishi

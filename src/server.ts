@@ -96,13 +96,13 @@ export class GitHub extends Service {
     })
   }
 
-  emit<T extends EmitterWebhookEventName, P = {}>(event: T, payload: CommonPayload) {
+  async emit<T extends EmitterWebhookEventName, P = {}>(event: T, payload: CommonPayload) {
     let result: any
     if (payload.action) {
-      result = this.ctx.bail(`github/event/${event}/${payload.action}` as any, payload)
+      result = await this.ctx.serial(`github/event/${event}/${payload.action}` as any, payload)
     }
     if (!result) {
-      result = this.ctx.bail(`github/event/${event}` as any, payload)
+      result = await this.ctx.serial(`github/event/${event}` as any, payload)
     }
     return result as EventData<P>
   }

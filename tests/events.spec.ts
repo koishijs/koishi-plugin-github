@@ -4,7 +4,7 @@ import { readdirSync } from 'fs'
 import { resolve } from 'path'
 import { mockResponse } from './utils'
 import * as jest from 'jest-mock'
-import * as github from 'koishi-plugin-github'
+import * as github from '../src'
 import mock from '@koishijs/plugin-mock'
 import memory from '@koishijs/plugin-database-memory'
 
@@ -43,7 +43,10 @@ describe('koishi-plugin-github (events)', () => {
     await app.database.createChannel('mock', '999', {
       assignee: app.bots[0].selfId,
       github: {
-        webhooks: { 'koishijs/koishi': {} },
+        webhooks: {
+          'koishijs/koishi': {},
+          'koishijs/console': {},
+        },
       },
     })
     app.plugin(github)

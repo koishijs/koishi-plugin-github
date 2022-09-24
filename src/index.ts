@@ -347,7 +347,7 @@ export function apply(ctx: Context, config: Config) {
     if (!targets.length) return
 
     // step 2: handle event
-    const result = ctx.github.emit(event as any, payload)
+    const result = await ctx.github.emit(event as any, payload)
     if (!result) return
 
     // step 3: broadcast message
