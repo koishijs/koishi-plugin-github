@@ -1,11 +1,11 @@
 import { createHmac } from 'crypto'
 import { encode } from 'querystring'
 import { camelize, Context, Dict, Logger, Quester, Random, sanitize, Session } from 'koishi'
-import { addListeners, CommonPayload, defaultEvents, EventConfig } from './events'
 import { Config, GitHub, ReplyHandler, ReplySession } from './server'
-import { Method } from 'axios'
+import events, { EventFilter } from './events'
 
 export * from './server'
+export * from './events'
 
 export const name = 'GitHub'
 export const using = ['database'] as const
@@ -18,9 +18,10 @@ export function apply(ctx: Context, config: Config) {
 
   const { app, database } = ctx
   const { appId, redirect } = config
-  const subscriptions: Dict<Dict<EventConfig>> = {}
+  const subscriptions: Dict<Dict<EventFilter>> = {}
 
   ctx.plugin(GitHub, config)
+  ctx.plugin(events)
 
   const tokens: Dict<string> = Object.create(null)
 
@@ -139,7 +140,7 @@ export function apply(ctx: Context, config: Config) {
       return repos.map(repo => repo.name).join('\n')
     })
 
-  function subscribe(repo: string, cid: string, meta: EventConfig) {
+  function subscribe(repo: string, cid: string, meta: EventFilter) {
     (subscriptions[repo] ||= {})[cid] = meta
   }
 
@@ -206,7 +207,7 @@ export function apply(ctx: Context, config: Config) {
       return session.execute('help github')
     })
 
-  async function request(method: Method, url: string, session: ReplySession, body: any, message: string) {
+  async function request(method: Quester.Method, url: string, session: ReplySession, body: any, message: string) {
     return ctx.github.request(method, 'https://api.github.com' + url, session, body)
       .then(() => message + session.text('github.succeeded'))
       .catch((err) => {
@@ -262,7 +263,7 @@ export function apply(ctx: Context, config: Config) {
   }
 
   ctx.router.post(config.path + '/webhook', async (_ctx) => {
-    const event = _ctx.headers['x-github-event']
+    const event = _ctx.headers['x-github-event'].toString()
     const signature = _ctx.headers['x-hub-signature-256']
     const id = _ctx.headers['x-github-delivery']
     const webhookId = +_ctx.headers['x-github-hook-id']
@@ -298,10 +299,7 @@ export function apply(ctx: Context, config: Config) {
     }
 
     _ctx.status = 200
-    if (payload.action) {
-      app.emit(`github/${fullEvent}` as any, payload)
-    }
-    app.emit(`github/${event}` as any, payload)
+    app.emit('github/webhook', event, payload)
   })
 
   ctx.before('attach-user', (session, fields) => {
@@ -332,43 +330,39 @@ export function apply(ctx: Context, config: Config) {
     return handler[name](...payload)
   })
 
-  addListeners((event, handler) => {
-    const base = camelize(event.split('/', 1)[0])
-    ctx.on(`github/${event}` as any, async (payload: CommonPayload) => {
-      // step 1: filter event
-      const repoConfig = subscriptions[payload.repository.full_name.toLowerCase()] || {}
-      const targets = Object.keys(repoConfig).filter((id) => {
-        const baseConfig = repoConfig[id][base] || {}
-        if (baseConfig === false) return
-        // payload.action may be undefined
-        if (payload.action && baseConfig !== true) {
-          const action = camelize(payload.action)
-          const actionConfig = baseConfig[action]
-          if (actionConfig === false) return
-          if (actionConfig !== true && !(defaultEvents[base] || {})[action]) return
-        }
-        return true
-      })
-      if (!targets.length) return
-
-      // step 2: handle event
-      const result = handler(payload as any)
-      if (!result) return
-
-      // step 3: broadcast message
-      logger.debug('broadcast', result[0].split('\n', 1)[0])
-      const messageIds = await ctx.broadcast(targets, config.messagePrefix + result[0])
-
-      // step 4: save message ids for interactions
-      for (const id of messageIds) {
-        ctx.github.history[id] = result[1]
+  ctx.on('github/webhook', async (event, payload) => {
+    // step 1: filter event
+    const repoConfig = subscriptions[payload.repository.full_name.toLowerCase()] || {}
+    const targets = Object.keys(repoConfig).filter((id) => {
+      const baseConfig = repoConfig[id][camelize(event)] || {}
+      if (baseConfig === false) return
+      // payload.action may be undefined
+      if (payload.action && baseConfig !== true) {
+        const action = camelize(payload.action)
+        const actionConfig = baseConfig[action]
+        if (actionConfig === false) return
       }
-
-      ctx.setTimeout(() => {
-        for (const id of messageIds) {
-          delete ctx.github.history[id]
-        }
-      }, config.replyTimeout)
+      return true
     })
+    if (!targets.length) return
+
+    // step 2: handle event
+    const result = ctx.github.emit(event as any, payload)
+    if (!result) return
+
+    // step 3: broadcast message
+    logger.debug('broadcast', result[0].split('\n', 1)[0])
+    const messageIds = await ctx.broadcast(targets, config.messagePrefix + result[0])
+
+    // step 4: save message ids for interactions
+    for (const id of messageIds) {
+      ctx.github.history[id] = result[1]
+    }
+
+    ctx.setTimeout(() => {
+      for (const id of messageIds) {
+        delete ctx.github.history[id]
+      }
+    }, config.replyTimeout)
   })
 }

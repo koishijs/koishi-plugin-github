@@ -1,4 +1,4 @@
-import { EventConfig } from './events'
+import { CommonPayload, EmitterWebhookEventName, EventFilter, EventHandler } from './events'
 import { Method } from 'axios'
 import { Context, Dict, Logger, Quester, Schema, segment, Service, Session, Time } from 'koishi'
 import {} from 'koishi-plugin-puppeteer'
@@ -6,6 +6,10 @@ import {} from 'koishi-plugin-puppeteer'
 declare module 'koishi' {
   interface Context {
     github?: GitHub
+  }
+
+  interface Events {
+    'github/webhook'(event: string, payload: CommonPayload): void
   }
 
   interface User {
@@ -17,7 +21,7 @@ declare module 'koishi' {
 
   interface Channel {
     github: {
-      webhooks: Dict<EventConfig>
+      webhooks: Dict<EventFilter>
     }
   }
 
@@ -90,6 +94,21 @@ export class GitHub extends Service {
       name: 'string(50)',
       secret: 'string(50)',
     })
+  }
+
+  emit<T extends EmitterWebhookEventName, P = {}>(event: T, payload: CommonPayload) {
+    let result: any
+    if (payload.action) {
+      result = this.ctx.bail(`github/event/${event}/${payload.action}` as any, payload)
+    }
+    if (!result) {
+      result = this.ctx.bail(`github/event/${event}` as any, payload)
+    }
+    return result as EventData<P>
+  }
+
+  on<T extends EmitterWebhookEventName>(event: T, listener: EventHandler<T>, prepend = false) {
+    return this.ctx.on('github/event/' + event as any, listener, prepend)
   }
 
   async getTokens(params: any) {

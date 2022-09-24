@@ -66,18 +66,14 @@ describe('koishi-plugin-github (events)', () => {
         })
 
         const payload = require(`./fixtures/${title}`)
-        const event = title.split(title.includes('/') ? '/' : '.', 1)
-        const fullEvent = payload.action ? `${event}/${payload.action}` : event
-        if (payload.action) {
-          app.emit(`github/${fullEvent}` as any, payload)
-        }
-        app.emit(`github/${event}` as any, payload)
+        const event = title.split(title.includes('/') ? '/' : '.', 1)[0]
+        app.emit('github/webhook', event, payload)
 
         // wait until all messages are sent
         await sleep(0)
         if (snapshots[title]) {
           expect(sendMessage.mock.calls).to.have.length(1)
-          expect(sendMessage.mock.calls[0][1]).to.equal(snapshots[title].trim())
+          expect(sendMessage.mock.calls[0][1]).to.equal(snapshots[title])
         } else {
           expect(sendMessage.mock.calls).to.have.length(0)
         }
