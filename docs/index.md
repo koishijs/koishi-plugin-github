@@ -2,7 +2,7 @@
 sidebarDepth: 2
 ---
 
-# 接入 GitHub
+# 介绍
 
 ::: tip
 要使用本插件，你需要安装数据库支持。
@@ -85,76 +85,3 @@ plugins:
 ## 指令：github.repos
 
 ## 指令：github.authorize
-
-## 支持的事件
-
-- commit_comment
-  - created
-- create
-- delete
-- fork
-- issues
-  - opened
-  - closed
-- issue_comment
-  - created
-- milestone
-  - created
-- pull_request
-  - opened
-  - closed
-  - reopened
-  - ready_for_review
-  - converted_to_draft
-  - review_requested
-- pull_request_review
-  - submitted
-- pull_request_review_comment
-  - created
-- push
-- star
-  - created
-
-## 配置项
-
-### path
-
-- 类型: `string`
-- 默认值: `'/github'`
-
-GitHub 服务的路径。
-
-### appId
-
-- 类型: `string`
-
-### appSecret
-
-- 类型: `string`
-
-### redirect
-
-- 类型: `string`
-
-### messagePrefix
-
-- 类型: `string`
-- 默认值: `'[GitHub] '`
-
-显示在每条消息前的文本。
-
-### promptTimeout
-
-- 类型: `number`
-
-### replyTimeout
-
-- 类型: `number`
-
-### requestTimeout
-
-- 类型: `number`
-
-### events
-
-- 类型: `EventConfig`
