@@ -9,14 +9,14 @@ sidebarDepth: 2
 :::
 
 ::: tip
-要启用屏幕截图相关功能，你需要安装 [koishi-plugin-puppeteer](./puppeteer.md)。
+要启用屏幕截图相关功能，你需要安装 koishi-plugin-puppeteer。
 :::
 
 koishi-plugin-github 封装了一系列 GitHub 相关的功能。比如监听 [GitHub Webhooks](https://developer.github.com/webhooks/)，将收到的事件进行处理后发送到特定频道中。你还可以直接回复某条推送，通过快捷指令来实现进一步的功能，例如查看链接、进行评论、合并 PR 等等。
 
 ## 功能展示
 
-### 收取 Github Webhooks
+<!-- ### 收取 Github Webhooks
 
 下面是一个 push 的例子，并使用 link 快捷指令来查看 diff。
 
@@ -57,7 +57,7 @@ koishi-plugin-github 封装了一系列 GitHub 相关的功能。比如监听 [G
 <p>[GitHub] simon300000 commented on issue koishijs/koishi#19</p>
 <p>Mich würde auch interessieren, was ist „CoolQ“?</p>
 </chat-message>
-</panel-view>
+</panel-view> -->
 
 ## 基本用法
 
@@ -65,15 +65,15 @@ koishi-plugin-github 封装了一系列 GitHub 相关的功能。比如监听 [G
 
 1. 访问你个人的 Settings → Developer Settings → OAuth Apps 页面，点击右上角的「New OAuth App」。
 
-![oauth-app-1](/github/oauth-app-1.png)
+![oauth-app-1](./assets/oauth-app-1.png)
 
-2. 上面的两个随便填就可以，下面的 Callback URL 填写你机器人收取验证的地址（通常是你机器人的域名加上 `/github/authorize`）。配置完毕后点击「Register Application」就可以使用了。
+1. 上面的两个随便填就可以，下面的 Callback URL 填写你机器人收取验证的地址（通常是你机器人的域名加上 `/github/authorize`）。配置完毕后点击「Register Application」就可以使用了。
 
-![oauth-app-2](/github/oauth-app-2.png)
+![oauth-app-2](./assets/oauth-app-2.png)
 
 ### 填写插件的配置项
 
-```yaml title=koishi.yml
+```yaml
 plugins:
   github:
     appId: your-github-app-id
