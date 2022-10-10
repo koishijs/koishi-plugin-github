@@ -246,7 +246,7 @@ export function apply(ctx: Context, config: Config) {
     })
 
   ctx.on('ready', async () => {
-    const channels = await ctx.database.getAssignedChannels(['id', 'platform', 'github'])
+    const channels = await ctx.database.get('channel', {}, ['id', 'platform', 'github'])
     for (const { id, platform, github } of channels) {
       for (const repo in github.webhooks) {
         subscribe(repo, `${platform}:${id}`, github.webhooks[repo])
