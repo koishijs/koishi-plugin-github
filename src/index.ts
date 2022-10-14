@@ -3,6 +3,7 @@ import { encode } from 'querystring'
 import { camelize, Context, Dict, Logger, Quester, Random, sanitize, Session } from 'koishi'
 import { Config, GitHub, ReplyHandler, ReplySession } from './server'
 import events, { EventFilter } from './events'
+import {} from '@koishijs/plugin-help'
 
 export * from './server'
 export * from './events'

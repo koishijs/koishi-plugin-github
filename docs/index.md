@@ -1,7 +1,3 @@
----
-sidebarDepth: 2
----
-
 # 介绍
 
 ::: tip
