@@ -63,6 +63,7 @@ describe('koishi-plugin-github (repos)', () => {
     uuid.mockReturnValue('foo-bar-baz')
     oauth().query({ state: 'foo-bar-baz' }).reply(200, payload)
     await client.shouldReply('github.authorize', '请输入用户名。')
+    await client.shouldReply('github.authorize 用户名', '无效的用户名。')
     await client.shouldReply('github.authorize satori', /^请点击下面的链接继续操作：/)
     await expect(app.mock.webhook.get('/github/authorize')).to.eventually.have.property('code', 400)
     await expect(app.mock.webhook.get('/github/authorize?state=foo-bar-baz')).to.eventually.have.property('code', 200)

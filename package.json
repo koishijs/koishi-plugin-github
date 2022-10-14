@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-github",
   "description": "GitHub Toolkit for Koishi",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

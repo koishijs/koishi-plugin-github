@@ -46,6 +46,7 @@ export function apply(ctx: Context, config: Config) {
     .userFields(['id'])
     .action(async ({ session }, user) => {
       if (!user) return session.text('.user-expected')
+      if (!/^[a-z0-9-]+$/i.test(user)) return session.text('.invalid-name')
       const token = Random.id()
       tokens[token] = session.user.id
       const url = 'https://github.com/login/oauth/authorize?' + encode({
