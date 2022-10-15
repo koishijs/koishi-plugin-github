@@ -29,6 +29,13 @@ issue_comment/created.2: |-
   [GitHub] Kouchya commented on pull request koishijs/koishi#20
   C'est important!
 
+issue_comment/deleted: |-
+  [GitHub] shigma deleted a comment on issue koishijs/novelai-bot#46
+
+issue_comment/edited: |-
+  [GitHub] shigma edited a comment on issue koishijs/novelai-bot#43
+  现在已经支持 tg、dc 平台合并到一条消息发送了（需要更新适配器）。
+
 issues/closed: |-
   [GitHub] Shigma closed issue koishijs/koishi#19
   Wie kann man um das Koishi zu installieren?

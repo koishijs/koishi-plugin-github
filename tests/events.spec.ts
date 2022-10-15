@@ -46,6 +46,7 @@ describe('koishi-plugin-github (events)', () => {
         webhooks: {
           'koishijs/koishi': {},
           'koishijs/console': {},
+          'koishijs/novelai-bot': {},
         },
       },
     })

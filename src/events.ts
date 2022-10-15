@@ -51,7 +51,7 @@ export default function events(ctx: Context) {
 
     const [target, replies] = await handler(payload)
     if (payload.action === 'deleted') {
-      return [`${user.login} deleted a comment on ${target}`]
+      return [`${payload.sender.login} deleted a comment on ${target}`]
     }
 
     const { padding } = replies
