@@ -52,6 +52,11 @@ issues/opened.1: |-
 # issue transfer (destination)
 issues/opened.2: null
 
+# https://github.com/koishijs/koishi/issues/19
+issues/reopened: |-
+  [GitHub] shigma reopened issue koishijs/koishi#825
+  Feature: 网页后台是否可以设置密码
+
 # issue transfer (source)
 # https://github.com/koishijs/console/issues/32
 issues/transferred: |-

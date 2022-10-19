@@ -147,6 +147,11 @@ export default function events(ctx: Context) {
     return [`${sender.login} closed issue ${name}\n${issue.title}`]
   })
 
+  onIssue('issues/reopened', ({ repository, issue, sender }) => {
+    const name = getIssueName(issue, repository)
+    return [`${sender.login} reopened issue ${name}\n${issue.title}`]
+  })
+
   onComment('pull_request_review_comment', ({ repository, comment, pull_request }) => {
     const { full_name } = repository
     const { number } = pull_request
