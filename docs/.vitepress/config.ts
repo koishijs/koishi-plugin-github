@@ -5,6 +5,12 @@ export default defineConfig({
   title: 'koishi-plugin-github',
   description: 'GitHub Toolkit for Koishi',
 
+  head: [
+    ['link', { rel: 'icon', href: 'https://koishi.chat/logo.png' }],
+    ['link', { rel: 'manifest', href: 'https://koishi.chat/manifest.json' }],
+    ['meta', { name: 'theme-color', content: '#5546a3' }],
+  ],
+
   themeConfig: {
     sidebar: [{
       text: '指南',

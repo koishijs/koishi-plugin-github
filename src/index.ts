@@ -24,7 +24,7 @@ export function apply(ctx: Context, config: Config) {
   ctx.plugin(GitHub, config)
   ctx.plugin(events)
 
-  const tokens: Dict<string> = Object.create(null)
+  const tokens: Dict<number> = Object.create(null)
 
   ctx.router.get(config.path + '/authorize', async (_ctx) => {
     const token = _ctx.query.state
@@ -34,7 +34,7 @@ export function apply(ctx: Context, config: Config) {
     delete tokens[token]
     const { code, state } = _ctx.query
     const data = await ctx.github.getTokens({ code, state, redirect_uri: redirect })
-    await database.setUser('id', id, {
+    await database.set('user', { id }, {
       'github.accessToken': data.access_token,
       'github.refreshToken': data.refresh_token,
     })
