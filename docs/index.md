@@ -76,8 +76,31 @@ plugins:
     appSecret: your-github-app-secret
 ```
 
+同时，你也需要填写 `全局设置` 中的 `selfUrl` 项，以便于 Koishi 知晓你的 bot 的公网地址。
+
+另外， `appId` 和 `appSecret` 是你看到的 `clientId` 和 `clientSecret` ，~~我很怀疑是打错了~~。
+
 ## 指令：github
+
+github [name]
+可用的选项有：
+    -a, --add 在该群聊订阅一个已监听的仓库
+    -d, --delete 移除已订阅的仓库
+    -l, --list 列出本群监听的仓库 
 
 ## 指令：github.repos
 
+github.repos [name]
+管理监听的仓库
+可用的选项有：
+    -a, --add  监听一个新的仓库
+    -d, --delete  移除已监听的仓库
+    -s, --subscribe  添加完成后更新到订阅
+
+在添加好监听后，你可以在群聊上下文中使用 `github -a [仓库名]` 来监听某个仓库。这需要操作者拥有 Bot 的 2 级权限。
+
 ## 指令：github.authorize
+
+github.authorize <user>
+GitHub 授权
+别名：github.auth。
