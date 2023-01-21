@@ -2,9 +2,7 @@ commands:
   github.authorize:
     description: GitHub 授权
     messages:
-      user-expected: 请输入用户名。
       follow-link: 请点击下面的链接继续操作：
-      invalid-name: 无效的用户名。
 
   github.repos:
     description: 管理监听的仓库

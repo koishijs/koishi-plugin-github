@@ -30,9 +30,6 @@ GitHub 服务的路径。
 
 ## 高级配置
 
-### promptTimeout
-
-- 类型: `number`
 
 ### replyTimeout
 
