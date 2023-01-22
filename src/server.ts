@@ -142,7 +142,7 @@ export class GitHub extends Service {
 
   async authorize(session: Session, message: string) {
     await session.send(message)
-    await session.execute({ name: 'github.authorize', args: [] })
+    await session.execute({ name: 'github.authorize' })
   }
 
   async request(method: Method, url: string, session: ReplySession, body?: any, headers?: Dict) {
