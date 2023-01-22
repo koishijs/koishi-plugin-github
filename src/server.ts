@@ -1,6 +1,7 @@
 import { CommonPayload, EmitterWebhookEventName, EventFilter, EventHandler } from './events'
 import { Method } from 'axios'
 import { Context, Dict, Logger, Quester, Schema, segment, Service, Session, Time } from 'koishi'
+import {} from '@koishijs/assets'
 import {} from 'koishi-plugin-puppeteer'
 import { INDICATOR } from './markdown'
 
@@ -281,6 +282,6 @@ export class ReplyHandler {
     } finally {
       await page.close()
     }
-    return segment.image(buffer)
+    return segment.image(buffer, 'image/png')
   }
 }

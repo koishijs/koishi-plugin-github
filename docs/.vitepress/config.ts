@@ -26,10 +26,4 @@ export default defineConfig({
       ],
     }],
   },
-
-  vite: {
-    resolve: {
-      dedupe: ['vue'],
-    },
-  },
 })
