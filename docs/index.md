@@ -59,9 +59,8 @@ koishi-plugin-github 封装了一系列 GitHub 相关的功能。比如监听 [G
 
 ### 将 Bot 部署在公网
 
-1. 本插件的监听功能基于github webhook运行，因此需要部署于公网（参考[服务器部署](https://koishi.chat/manual/recipe/server.html)）
-
-2. 部署完成后需要填写koishi的 `selfUrl` 字段（可于 控制台 -> 插件配置 -> 全局设置 -> 网络设置 填写）
+1. 本插件的监听功能基于 GitHub Webhook 运行，因此需要部署于公网 (参考[服务器部署](https://koishi.chat/manual/recipe/server.html))
+2. 部署完成后需要填写全局设置中的 `selfUrl` 字段 (控制台 -> 插件配置 -> 全局设置 -> 网络设置)
 
 ### 创建你的 OAuth App
 
@@ -69,10 +68,9 @@ koishi-plugin-github 封装了一系列 GitHub 相关的功能。比如监听 [G
 
 ![oauth-app-1](./assets/oauth-app-1.png)
 
-2. 上面的两个随便填就可以，下面的 Callback URL 填写你机器人收取验证的地址。若配置项中的`path`未修改，则为机器人部署url加上 `/github/authorize`, 其中`/github`为配置项中`path`。配置完毕后点击「Register Application」就可以使用了。
+2. 上面的两个随便填就可以，下面的 Callback URL 填写你机器人收取验证的地址。若配置项中的 `path` 未修改，则为机器人部署 url 加上 `/github/authorize`，其中 `/github` 对应配置项中 `path`。配置完毕后点击「Register Application」就可以使用了。
 
 > 例如机器人部署在`https://example.com`，配置项中为`path`为默认值`/github`，`callback URL`则填写`https://example.com/github/authorize`
-
 
 ![oauth-app-2](./assets/oauth-app-2.png)
 
@@ -87,7 +85,7 @@ plugins:
 
 ### 其他注意事项
 
-部分功能（如仓库订阅）需要用户具有较高级权限才可以设置。出现相关问题时可以通过调整用户权限解决。（如编辑控制台 -> 数据库 -> User 的authority权限）
+部分功能 (如仓库订阅) 需要用户具有较高级权限才可以设置。出现相关问题时可以通过调整用户权限解决 (控制台 -> 数据库 -> User 的 authority 权限)。
 
 ## 指令：github
 
