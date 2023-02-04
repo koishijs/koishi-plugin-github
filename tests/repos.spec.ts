@@ -62,9 +62,7 @@ describe('koishi-plugin-github (repos)', () => {
     const uuid = jest.spyOn(Random, 'id')
     uuid.mockReturnValue('foo-bar-baz')
     oauth().query({ state: 'foo-bar-baz' }).reply(200, payload)
-    await client.shouldReply('github.authorize', '请输入用户名。')
-    await client.shouldReply('github.authorize 用户名', '无效的用户名。')
-    await client.shouldReply('github.authorize satori', /^请点击下面的链接继续操作：/)
+    await client.shouldReply('github.authorize', /^请点击下面的链接继续操作：/)
     await expect(app.mock.webhook.get('/github/authorize')).to.eventually.have.property('code', 400)
     await expect(app.mock.webhook.get('/github/authorize?state=foo-bar-baz')).to.eventually.have.property('code', 200)
     await expect(app.database.getUser('mock', '123')).to.eventually.have.shape({
@@ -138,7 +136,7 @@ describe('koishi-plugin-github (repos)', () => {
   })
 
   it('token not found', async () => {
-    await client3.shouldReply(`<quote id=${messageId}/> test`, '要使用此功能，请对机器人进行授权。输入你的 GitHub 用户名。')
+    await client3.shouldReply(`<quote id="${messageId}"/> test`, '要使用此功能，请对机器人进行授权。输入你的 GitHub 用户名。')
     const uuid = jest.spyOn(Random, 'id')
     uuid.mockReturnValue('foo-bar-baz')
     await client3.shouldReply('satori', /^请点击下面的链接继续操作：/)
@@ -147,13 +145,13 @@ describe('koishi-plugin-github (repos)', () => {
 
   it('request error', async () => {
     api.post('/repos/koishijs/koishi/issues/19/comments').replyWithError('foo')
-    await client.shouldReply(`<quote id=${messageId}/> test`, '发送失败。')
+    await client.shouldReply(`<quote id="${messageId}"/> test`, '发送失败。')
   })
 
   it('refresh token', async () => {
     const response = mockResponse('POST', '/issues/19/comments', [401])
     oauth().reply(401)
-    await client.shouldReply(`<quote id=${messageId}/> test`, '令牌已失效，需要重新授权。输入你的 GitHub 用户名。')
+    await client.shouldReply(`<quote id="${messageId}"/> test`, '令牌已失效，需要重新授权。输入你的 GitHub 用户名。')
     expect(response.mock.calls).to.have.length(1)
     await client.shouldReply('', '输入超时。')
   })
@@ -162,7 +160,7 @@ describe('koishi-plugin-github (repos)', () => {
     const response1 = mockResponse('POST', '/issues/19/comments', [401])
     const response2 = mockResponse('POST', '/issues/19/comments', [500])
     oauth().query({ refresh_token: '1919810', grant_type: 'refresh_token' }).reply(200, payload)
-    await client.shouldReply(`<quote id=${messageId}/> test`, '发送失败。')
+    await client.shouldReply(`<quote id="${messageId}"/> test`, '发送失败。')
     expect(response1.mock.calls).to.have.length(1)
     expect(response2.mock.calls).to.have.length(1)
   })
