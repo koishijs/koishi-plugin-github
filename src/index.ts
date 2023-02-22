@@ -240,7 +240,6 @@ export function apply(ctx: Context, config: Config) {
         return ctx.github.authorize(session, session.text('github.require-auth'))
       }
 
-      name = name.toLowerCase()
       return request('PUT', `/user/starred/${name}`, session, null, session.text('github.action'))
     })
 
