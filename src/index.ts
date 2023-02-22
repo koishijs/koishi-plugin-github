@@ -231,17 +231,16 @@ export function apply(ctx: Context, config: Config) {
       }, session.text('github.create'))
     })
 
-  ctx.command('github.star [repo]')
+  ctx.command('github.star [name]')
     .userFields(['github'])
-    .option('repo', '-r [repo:string]')
-    .action(async ({ session, options }) => {
-      if (!options.repo) return session.text('github.repo-expected')
-      if (!repoRegExp.test(options.repo)) return session.text('github.repo-invalid')
+    .action(async ({ session }, name) => {
+      if (!name) return session.text('github.repo-expected')
+      if (!repoRegExp.test(name)) return session.text('github.repo-invalid')
       if (!session.user.github?.accessToken) {
         return ctx.github.authorize(session, session.text('github.require-auth'))
       }
 
-      return request('PUT', `/user/starred/${options.repo}`, session, null, session.text('github.action'))
+      return request('PUT', `/user/starred/${name}`, session, null, session.text('github.action'))
     })
 
   ctx.on('ready', async () => {
