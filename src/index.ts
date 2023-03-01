@@ -350,7 +350,7 @@ export function apply(ctx: Context, config: Config) {
 
     // step 3: broadcast message
     logger.debug('broadcast', result[0].split('\n', 1)[0])
-    const messageIds = await ctx.broadcast(targets, config.messagePrefix + result[0])
+    const messageIds = await ctx.broadcast(targets, config.messagePrefix + segment.escape(result[0]))
 
     // step 4: save message ids for interactions
     for (const id of messageIds) {
