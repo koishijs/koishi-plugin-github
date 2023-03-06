@@ -41,10 +41,10 @@ export function apply(ctx: Context, config: Config) {
     return _ctx.status = 200
   })
 
-  ctx.command('github.authorize <user>')
+  ctx.command('github.authorize')
     .alias('github.auth')
     .userFields(['id'])
-    .action(async ({ session }, user) => {
+    .action(async ({ session }) => {
       const token = Random.id()
       tokens[token] = session.user.id
       const url = 'https://github.com/login/oauth/authorize?' + encode({
