@@ -88,6 +88,6 @@
   },
   "dependencies": {
     "@octokit/webhooks-types": "^5.8.0",
-    "marked": "^4.2.12"
+    "koishi-plugin-markdown": "^1.1.1"
   }
 }
