@@ -30,7 +30,7 @@ export function apply(ctx: Context, config: Config) {
     const token = _ctx.query.state
     if (!token || Array.isArray(token)) return _ctx.status = 400
     const id = tokens[token]
-    if (!id) return _ctx.status = 403
+    if (id === undefined) return _ctx.status = 403
     delete tokens[token]
     const { code, state } = _ctx.query
     const data = await ctx.github.getTokens({ code, state, redirect_uri: redirect })
