@@ -29,12 +29,11 @@ export function apply(ctx: Context, config: Config) {
   ctx.router.get(config.path + '/authorize', async (_ctx) => {
     const token = _ctx.query.state
     if (!token || Array.isArray(token)) return _ctx.status = 400
-    const id = tokens[token]
-    if (!id) return _ctx.status = 403
+    if (!(token in tokens)) return _ctx.status = 403
     delete tokens[token]
     const { code, state } = _ctx.query
     const data = await ctx.github.getTokens({ code, state, redirect_uri: redirect })
-    await database.set('user', { id }, {
+    await database.set('user', { id: tokens[token] }, {
       'github.accessToken': data.access_token,
       'github.refreshToken': data.refresh_token,
     })
