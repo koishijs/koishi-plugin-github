@@ -14,10 +14,10 @@ export const using = ['database'] as const
 const logger = new Logger('github')
 
 export function apply(ctx: Context, config: Config) {
-  ctx.i18n.define('zh', require('./locales/zh'))
+  ctx.i18n.define('zh-CN', require('./locales/zh-CN'))
   config.path = sanitize(config.path)
 
-  const { app, database } = ctx
+  const { root, database } = ctx
   const { appId, redirect } = config
   const subscriptions: Dict<Dict<EventFilter>> = {}
 
@@ -82,7 +82,7 @@ export function apply(ctx: Context, config: Config) {
               events: ['*'],
               config: {
                 secret,
-                url: app.options.selfUrl + config.path + '/webhook',
+                url: root.config.selfUrl + config.path + '/webhook',
               },
             })
           } catch (err) {
@@ -150,7 +150,7 @@ export function apply(ctx: Context, config: Config) {
     }
   }
 
-  const hidden = (sess: Session) => sess.subtype !== 'group'
+  const hidden = (session: Session) => session.isDirect
 
   ctx.command('github [name]')
     .alias('gh')
@@ -296,7 +296,7 @@ export function apply(ctx: Context, config: Config) {
     }
 
     _ctx.status = 200
-    app.emit('github/webhook', event, payload)
+    root.emit('github/webhook', event, payload)
   })
 
   ctx.before('attach-user', (session, fields) => {
