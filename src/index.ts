@@ -30,10 +30,11 @@ export function apply(ctx: Context, config: Config) {
     const token = _ctx.query.state
     if (!token || Array.isArray(token)) return _ctx.status = 400
     if (!(token in tokens)) return _ctx.status = 403
+    const id = tokens[token]
     delete tokens[token]
     const { code, state } = _ctx.query
     const data = await ctx.github.getTokens({ code, state, redirect_uri: redirect })
-    await database.set('user', { id: tokens[token] }, {
+    await database.set('user', { id }, {
       'github.accessToken': data.access_token,
       'github.refreshToken': data.refresh_token,
     })

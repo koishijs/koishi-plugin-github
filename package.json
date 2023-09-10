@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-github",
   "description": "GitHub Toolkit for Koishi",
-  "version": "5.4.0",
+  "version": "5.4.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -74,7 +74,7 @@
     "nock": "^13.3.0",
     "sass": "^1.58.3",
     "shx": "^0.3.4",
-    "typescript": "^4.9.5",
+    "typescript": "^5.2.2",
     "vitepress": "1.0.0-rc.10",
     "yml-register": "^1.1.0"
   },
