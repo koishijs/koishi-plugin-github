@@ -9,7 +9,10 @@ export * from './server'
 export * from './events'
 
 export const name = 'GitHub'
-export const using = ['database'] as const
+export const inject = {
+  required: ['database', 'router'],
+  optional: ['assets', 'puppeteer'],
+}
 
 const logger = new Logger('github')
 
