@@ -1,7 +1,8 @@
 import { EventPayloadMap, Issue, PullRequest, Repository, WebhookEventName } from '@octokit/webhooks-types/schema'
 import { Awaitable, Context } from 'koishi'
-import { EventData } from './server'
+import { EventData } from './reply'
 import { transform } from './markdown'
+import GitHub from '.'
 
 type Camelize<S extends string> = S extends `${infer L}_${infer M}${infer R}` ? `${L}${Uppercase<M>}${Camelize<R>}` : S
 
@@ -34,9 +35,9 @@ type FactoryCreator = <T extends EmitterWebhookEventName, P = {}>
   (callback: (event: T, payload: Payload<T>, handler: EventHandler<T, P>) => Awaitable<EventData<P>>)
     => <E extends T>(event: E, handler?: EventHandler<E, P>) => void
 
-export default function events(ctx: Context) {
+export default function events(ctx: Context, github: GitHub) {
   const createFactory: FactoryCreator = (callback) => (event, handler) => {
-    ctx.github.on(event, payload => Reflect.apply(callback, null, [event, payload, handler]))
+    github.on(event, payload => Reflect.apply(callback, null, [event, payload, handler]))
   }
 
   type CommentEvent = 'commit_comment' | 'issue_comment' | 'pull_request_review_comment'
@@ -89,7 +90,7 @@ export default function events(ctx: Context) {
 
   onReference('delete')
 
-  ctx.github.on('fork', ({ repository, sender, forkee }) => {
+  github.on('fork', ({ repository, sender, forkee }) => {
     const { full_name, forks_count } = repository
     return [`${sender.login} forked ${full_name} to ${forkee.full_name} (total ${forks_count} forks)`]
   })
@@ -163,14 +164,14 @@ export default function events(ctx: Context) {
     }]
   })
 
-  ctx.github.on('milestone', ({ action, repository, milestone, sender }) => {
+  github.on('milestone', ({ action, repository, milestone, sender }) => {
     const { full_name } = repository
     const { title } = milestone
     if (!['opened', 'closed'].includes(action)) return
     return [`${sender.login} ${action} milestone ${title} for ${full_name}`]
   })
 
-  ctx.github.on('pull_request_review/submitted', ({ repository, review, pull_request }) => {
+  github.on('pull_request_review/submitted', ({ repository, review, pull_request }) => {
     if (!review.body) return
     const { comments_url } = pull_request
     const { user, html_url, body } = review
@@ -250,7 +251,7 @@ export default function events(ctx: Context) {
     return [`${sender.login} marked ${name} as ready for review`]
   })
 
-  ctx.github.on('push', ({ compare, pusher, sender, commits, repository, ref, before, after }) => {
+  github.on('push', ({ compare, pusher, sender, commits, repository, ref, before, after }) => {
     const { full_name } = repository
     if (sender.type === 'Bot') return
 
@@ -265,7 +266,7 @@ export default function events(ctx: Context) {
     }]
   })
 
-  ctx.github.on('star/created', ({ repository, sender }) => {
+  github.on('star/created', ({ repository, sender }) => {
     const { full_name, stargazers_count } = repository
     return [`${sender.login} starred ${full_name} (total ${stargazers_count} stargazers)`]
   })
