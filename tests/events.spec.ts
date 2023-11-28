@@ -4,7 +4,7 @@ import { readdirSync } from 'fs'
 import { resolve } from 'path'
 import { mockResponse } from './utils'
 import * as jest from 'jest-mock'
-import * as github from '../src'
+import github from '../src'
 import mock from '@koishijs/plugin-mock'
 import memory from '@koishijs/plugin-database-memory'
 
@@ -33,6 +33,7 @@ function* listFixtures(cwd: string, prefix = ''): Generator<string> {
 
 describe('koishi-plugin-github (events)', () => {
   before(async () => {
+    app.plugin(github)
     await app.start()
     await app.mock.initUser('123', 3, {
       github: {
@@ -50,7 +51,6 @@ describe('koishi-plugin-github (events)', () => {
         },
       },
     })
-    app.plugin(github)
     await sleep(0)
   })
 
