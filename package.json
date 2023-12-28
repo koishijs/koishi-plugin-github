@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-github",
   "description": "GitHub Toolkit for Koishi",
-  "version": "5.5.0",
+  "version": "5.5.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -28,7 +28,8 @@
   "koishi": {
     "service": {
       "required": [
-        "database"
+        "database",
+        "server"
       ],
       "optional": [
         "assets",
@@ -51,15 +52,16 @@
   },
   "devDependencies": {
     "@koishijs/assets": "^1.0.3",
-    "@koishijs/plugin-database-memory": "^2.5.0",
-    "@koishijs/plugin-help": "^2.4.0",
+    "@koishijs/plugin-database-memory": "^2.5.1",
+    "@koishijs/plugin-help": "^2.4.1",
     "@koishijs/plugin-mock": "^2.6.5",
-    "@koishijs/vitepress": "^3.0.5",
+    "@koishijs/plugin-server": "^3.1.3",
+    "@koishijs/vitepress": "^3.2.0",
     "@types/chai": "^4.3.11",
     "@types/chai-as-promised": "^7.1.8",
     "@types/marked": "^4.3.2",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^18.18.13",
+    "@types/node": "^18.19.3",
     "atsc": "^1.2.2",
     "c8": "^8.0.1",
     "chai": "^4.3.10",
@@ -68,18 +70,18 @@
     "esbuild": "^0.14.54",
     "esbuild-register": "^3.5.0",
     "jest-mock": "^28.1.3",
-    "koishi": "^4.15.6",
+    "koishi": "^4.16.2",
     "koishi-plugin-puppeteer": "^3.7.3",
     "mocha": "^9.2.2",
-    "nock": "^13.3.8",
+    "nock": "^13.4.0",
     "sass": "^1.69.5",
     "shx": "^0.3.4",
-    "typescript": "^5.3.2",
+    "typescript": "^5.3.3",
     "vitepress": "1.0.0-rc.10",
     "yml-register": "^1.1.0"
   },
   "peerDependencies": {
-    "koishi": "^4.15.6"
+    "koishi": "^4.16.2"
   },
   "dependencies": {
     "@octokit/webhooks-types": "^5.8.0",

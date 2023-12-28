@@ -2,6 +2,7 @@ import { createHmac } from 'crypto'
 import { encode } from 'querystring'
 import { camelize, Context, Dict, Quester, Random, sanitize, Session } from 'koishi'
 import {} from '@koishijs/plugin-help'
+import {} from '@koishijs/plugin-server'
 import GitHub, { ReplySession } from '.'
 import { EventFilter } from './events'
 import { ReplyHandler } from './reply'
@@ -16,7 +17,7 @@ export default function command(ctx: Context, github: GitHub) {
 
   const tokens: Dict<number> = Object.create(null)
 
-  ctx.router.get(path + '/authorize', async (_ctx) => {
+  ctx.server.get(path + '/authorize', async (_ctx) => {
     const token = _ctx.query.state
     if (!token || Array.isArray(token)) return _ctx.status = 400
     if (!(token in tokens)) return _ctx.status = 403
@@ -73,7 +74,7 @@ export default function command(ctx: Context, github: GitHub) {
               events: ['*'],
               config: {
                 secret,
-                url: root.config.selfUrl + path + '/webhook',
+                url: ctx.server.config.selfUrl + path + '/webhook',
               },
             })
           } catch (err) {
@@ -250,7 +251,7 @@ export default function command(ctx: Context, github: GitHub) {
     } catch {}
   }
 
-  ctx.router.post(path + '/webhook', async (_ctx) => {
+  ctx.server.post(path + '/webhook', async (_ctx) => {
     const event = _ctx.headers['x-github-event'].toString()
     const signature = _ctx.headers['x-hub-signature-256']
     const id = _ctx.headers['x-github-delivery']

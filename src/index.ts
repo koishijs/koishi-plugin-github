@@ -53,7 +53,7 @@ const logger = new Logger('github')
 
 class GitHub extends Service {
   static inject = {
-    required: ['database', 'router'],
+    required: ['database', 'server'],
     optional: ['assets', 'puppeteer'],
   }
 
